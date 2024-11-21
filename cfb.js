@@ -38,7 +38,7 @@ const authClient = new google.auth.JWT(
         const res = await service.spreadsheets.values.get({
             auth: authClient,
             //this is the id of the google form spreadsheet data (in the url of the spreadsheet)
-            spreadsheetId: "your_spreadsheet_id",
+            spreadsheetId: "spreadsheetId",
             range: "A:M",//can adjust this to sepific rows EX: A:B, A:E, etc
         });
 
@@ -115,7 +115,7 @@ const defaultClient = cfb.ApiClient.instance;
 
 // Configure API key authorization: ApiKeyAuth
 let ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
-ApiKeyAuth.apiKey = 'Bearer your_api_key';
+ApiKeyAuth.apiKey = 'Bearer apikey';
 
 var apiInstance = new cfb.GamesApi();
 
@@ -180,6 +180,7 @@ fs.readFile('results.json', 'utf-8', (err, resultsData) => {
       let totalPointsToPlayer = 0;
       //restarts the winner at the beginning of a new user
       let winner;
+      let totalPointsToPlayerPrevious = 0;
 
       // Iterate through first 6 bowl games
       for (let current_user_choice = 0; current_user_choice < 9; current_user_choice++){
@@ -208,13 +209,41 @@ fs.readFile('results.json', 'utf-8', (err, resultsData) => {
           // Award point if prediction was correct
           if (correctPrediction) {
               totalPointsToPlayer++;
-              console.log(`Correct prediction: ${userPrediction}`);
+              // console.log(`Correct prediction: ${userPrediction}`);
           } else {
-              console.log(`Incorrect prediction: ${userPrediction}`);
+              // console.log(`Incorrect prediction: ${userPrediction}`);
           }
       }
       //logs the total points for each user
       console.log(`Total points for ${answer[current_user].userInfo.FirstName}: ${totalPointsToPlayer}\n`);
+      
+      /*-----------------Leaderboard-----------------*/
+          let highestPoints = 0;
+          let overallWinner;
+          let tiedUsers = [];
+
+          for (let current_user = 0; current_user < answer.length; current_user++) {
+            let totalPointsToPlayer = 0;
+
+            //logic to determine the overall winner
+            if (totalPointsToPlayer > highestPoints) {
+              highestPoints = totalPointsToPlayer;
+              overallWinner = answer[current_user].userInfo.FirstName;
+              tiedUsers = [overallWinner];
+            } else if (totalPointsToPlayer === highestPoints) {
+              tiedUsers.push(answer[current_user].userInfo.FirstName);
+            }
+
+          }
+            //logic for tied users
+            if (tiedUsers.length > 1) {
+              console.log("Tied for first place:");
+              for (const user of tiedUsers) {
+                console.log(user);
+              }
+            } else {
+              console.log("Overall Winner:", overallWinner);
+        }
     }
     
   });
